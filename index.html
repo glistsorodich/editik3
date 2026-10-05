@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZIL — ПРОВИНЦИЯ</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #000; }
+  body {
+    font-family: 'Arial Black', sans-serif;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+   #photo {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70vw;
+    height: 70vh;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 0.08s;
+    z-index: 1;
+    filter: contrast(1.4) saturate(1.2) brightness(0.9);
+  }
+
+  body.shake #photo {
+  animation: shake 0.15s infinite;
+  transform: translate(-50%, -50%);
+}
+  @keyframes shake {
+    0%   { transform: translate(0,0) scale(1.05); }
+    25%  { transform: translate(-8px, 5px) scale(1.08); }
+    50%  { transform: translate(7px, -6px) scale(1.06); }
+    75%  { transform: translate(-5px, 8px) scale(1.09); }
+    100% { transform: translate(0,0) scale(1.05); }
+  }
+
+  #flash {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity 0.05s;
+  }
+  #flash.on { opacity: 0.8; }
+
+  #glitch {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    opacity: 0;
+    mix-blend-mode: screen;
+  }
+  #glitch.on {
+    opacity: 1;
+    background: linear-gradient(90deg, #f00, transparent, #0ff, transparent);
+    animation: glitchMove 0.1s infinite;
+  }
+  @keyframes glitchMove {
+    0%   { transform: translate(0,0); filter: hue-rotate(0deg); }
+    50%  { transform: translate(-20px, 5px); filter: hue-rotate(180deg); }
+    100% { transform: translate(0,0); filter: hue-rotate(360deg); }
+  }
+
+  #start-screen {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 20px;
+  }
+  #start-screen h1 {
+    font-size: 48px;
+    letter-spacing: 8px;
+    color: #fff;
+    text-shadow: 0 0 20px #f00, 0 0 40px #900;
+    margin-bottom: 20px;
+    animation: pulseTitle 1s infinite alternate;
+  }
+  @keyframes pulseTitle {
+    from { transform: scale(1); text-shadow: 0 0 20px #f00; }
+    to   { transform: scale(1.05); text-shadow: 0 0 40px #f00, 0 0 60px #900; }
+  }
+  #start-btn {
+    font-size: 24px;
+    padding: 22px 60px;
+    background: #f00;
+    color: #fff;
+    border: 3px solid #fff;
+    font-family: 'Arial Black', sans-serif;
+    font-weight: bold;
+    letter-spacing: 3px;
+    cursor: pointer;
+    box-shadow: 0 0 30px #f00, 0 0 60px #900;
+    transition: transform 0.15s;
+  }
+  #start-btn:hover { transform: scale(1.05); }
+  #start-btn:active { transform: scale(0.95); }
+
+  #caption {
+    position: fixed;
+    bottom: 40px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 32px;
+    color: #fff;
+    text-shadow: 0 0 20px #f00, 0 0 40px #900;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 0.2s;
+    letter-spacing: 4px;
+  }
+  #caption.show { opacity: 1; }
+
+  #final-screen {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 20;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+  }
+  #final-screen.show { display: flex; }
+  #final-screen h1 {
+    font-size: 64px;
+    color: #f00;
+    text-shadow: 0 0 30px #f00, 0 0 60px #900;
+    letter-spacing: 6px;
+    animation: pulseTitle 0.8s infinite alternate;
+  }
+  #final-screen p {
+    font-size: 28px;
+    margin-top: 30px;
+    letter-spacing: 3px;
+    color: #fff;
+  }
+  #red-text-screen {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 50;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  #red-text-screen.show { display: flex; }
+
+  #red-text {
+    font-size: 96px;
+    color: #f00;
+    font-family: 'Arial Black', sans-serif;
+    letter-spacing: 12px;
+    text-shadow: 0 0 30px #f00, 0 0 60px #900, 0 0 100px #900;
+    transform: translateY(-120vh);
+    white-space: nowrap;
+    text-align: center;
+    padding: 0 20px;
+  }
+
+  #red-text.fall {
+    animation: textFall 0.4s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+  }
+  @keyframes textFall {
+    0%   { transform: translateY(-120vh); }
+    60%  { transform: translateY(20px); }
+    80%  { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+  }
+
+  #red-text.shake {
+    animation: textShake 0.1s infinite;
+  }
+  @keyframes textShake {
+    0%   { transform: translate(0, 0); }
+    25%  { transform: translate(-3px, 2px); }
+    50%  { transform: translate(3px, -2px); }
+    75%  { transform: translate(-2px, -3px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  .corner {
+    position: fixed;
+    width: 130px;
+    height: 130px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 50%;
+    opacity: 0;
+    z-index: 6;
+    animation: rotate 2s linear infinite;
+    box-shadow: 0 0 20px #f00, 0 0 40px #900;
+    border: 3px solid #f00;
+    transition: opacity 2s ease-in;
+  }
+
+  .corner.on { opacity: 0.95; }
+
+  #corner1 { top: 20px; left: 20px; }
+  #corner2 { top: 20px; right: 20px; }
+  #corner3 { bottom: 20px; left: 20px; }
+  #corner4 { bottom: 20px; right: 20px; }
+
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+
+<div id="photo"></div>
+<div id="glitch"></div>
+<div id="flash"></div>
+<div id="caption"></div>
+
+<div id="corner1" class="corner"></div>
+<div id="corner2" class="corner"></div>
+<div id="corner3" class="corner"></div>
+<div id="corner4" class="corner"></div>
+
+<div id="red-text-screen">
+  <h1 id="red-text">ZIL — ПРОВИНЦИЯ</h1>
+</div>
+
+<div id="start-screen">
+  <h1>ZIL — ПРОВИНЦИЯ</h1>
+  <button id="start-btn">▶ ВКЛЮЧИТЬ</button>
+</div>
+
+<div id="final-screen">
+  <h1>ЖМИ ГАЗ</h1>
+  <p>Для лучшего друга 🏍️</p>
+</div>
+
+<script>
+  const photos = [
+   "1.jpg",
+   "2.jpg",
+   "3.jpg",
+   "4.jpg",
+   "5.jpg",
+   "6.jpg",
+   "7.jpg",
+   "8.jpg",
+   "9.jpg",
+   "10.jpg",
+   "11.jpg",
+   "12.jpg",
+   "13.jpg",
+   "14.jpg",
+   "15.jpg",
+   "16.jpg"
+  ];
+
+  const cornerImages = ["17.jpg", "18.jpg", "19.jpg", "20.jpg"];
+  cornerImages.forEach((src, i) => {
+    const el = document.getElementById("corner" + (i + 1));
+    el.style.backgroundImage = `url("${src}")`;
+  });
+
+  cornerImages.forEach((src, i) => {
+    const el = document.getElementById("corner" + (i + 1));
+    el.style.backgroundImage = `url("${src}")`;
+    el.src = src;
+  });
+
+  const song = "song.mp3";
+
+  const photoTime = 400;
+
+  const captions = [
+    "ПРОВИНЦИЯ", "ZIL", "ЖМИ ГАЗ", "БРАТ", "ДВИЖ"
+  ];
+
+  const photoDiv = document.getElementById("photo");
+  const flash = document.getElementById("flash");
+  const glitch = document.getElementById("glitch");
+  const caption = document.getElementById("caption");
+  const startScreen = document.getElementById("start-screen");
+  const finalScreen = document.getElementById("final-screen");
+  const startBtn = document.getElementById("start-btn");
+
+  let currentPhoto = 0;
+
+  photos.forEach(src => {
+    const img = new Image();
+    img.src = src;
+  });
+
+  function showNextPhoto() {
+    if (currentPhoto >= photos.length) {
+      photoDiv.style.opacity = "0";
+      finalScreen.classList.add("show");
+      return;
+    }
+
+    photoDiv.style.backgroundImage = `url("${photos[currentPhoto]}")`;
+    photoDiv.style.opacity = "1";
+
+    if (currentPhoto % 3 === 0) {
+      caption.innerText = captions[Math.floor(Math.random() * captions.length)];
+      caption.classList.add("show");
+      setTimeout(() => caption.classList.remove("show"), photoTime - 100);
+    }
+
+    if (currentPhoto % 3 === 0) {
+      flash.classList.add("on");
+      setTimeout(() => flash.classList.remove("on"), 80);
+    }
+
+    if (currentPhoto % 2 === 0) {
+      document.body.classList.add("shake");
+      setTimeout(() => document.body.classList.remove("shake"), photoTime - 50);
+    }
+
+    if (currentPhoto % 4 === 0) {
+      glitch.classList.add("on");
+      setTimeout(() => glitch.classList.remove("on"), 100);
+    }
+
+    currentPhoto++;
+    setTimeout(showNextPhoto, photoTime);
+  }
+
+  function crackAndFallButton(btn) {
+    const rect = btn.getBoundingClientRect();
+
+    btn.style.transition = "transform 0.5s ease-in, opacity 0.5s";
+    btn.style.transform = "rotate(-8deg) translateY(20px)";
+    btn.style.opacity = "0.3";
+
+    setTimeout(() => {
+      btn.style.transform = "rotate(-25deg) translateY(300px)";
+      btn.style.opacity = "0";
+    }, 500);
+
+    for (let i = 0; i < 80; i++) {
+      const p = document.createElement("div");
+      p.style.cssText = `
+        position: fixed;
+        width: 5px; height: 5px;
+        background: #f00;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #f00;
+        left: ${rect.left + Math.random() * rect.width}px;
+        top: ${rect.top + Math.random() * rect.height}px;
+        pointer-events: none;
+        z-index: 100;
+      `;
+      document.body.appendChild(p);
+
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 3 + Math.random() * 8;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed - 3;
+      let x = 0, y = 0, rot = 0, life = 0;
+
+      const anim = setInterval(() => {
+        life++;
+        x += vx;
+        y += vy + life * 0.4;
+        rot += 20;
+        p.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
+        p.style.opacity = Math.max(0, 1 - life / 70);
+
+        if (life > 70) {
+          clearInterval(anim);
+          p.remove();
+        }
+      }, 16);
+    }
+  }
+
+  function crackAndFallButton(btn) {
+    const rect = btn.getBoundingClientRect();
+
+    btn.style.transition = "transform 0.5s ease-in, opacity 0.5s";
+    btn.style.transform = "rotate(-8deg) translateY(20px)";
+    btn.style.opacity = "0.3";
+
+    setTimeout(() => {
+      btn.style.transform = "rotate(-25deg) translateY(300px)";
+      btn.style.opacity = "0";
+    }, 500);
+
+    for (let i = 0; i < 80; i++) {
+      const p = document.createElement("div");
+      p.style.cssText = `
+        position: fixed;
+        width: 5px; height: 5px;
+        background: #f00;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #f00;
+        left: ${rect.left + Math.random() * rect.width}px;
+        top: ${rect.top + Math.random() * rect.height}px;
+        pointer-events: none;
+        z-index: 100;
+      `;
+      document.body.appendChild(p);
+
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 3 + Math.random() * 8;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed - 3;
+      let x = 0, y = 0, rot = 0, life = 0;
+
+      const anim = setInterval(() => {
+        life++;
+        x += vx;
+        y += vy + life * 0.4;
+        rot += 20;
+        p.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
+        p.style.opacity = Math.max(0, 1 - life / 70);
+
+        if (life > 70) {
+          clearInterval(anim);
+          p.remove();
+        }
+      }, 16);
+    }
+  }
+
+  startBtn.addEventListener("click", async () => {
+    try { await document.documentElement.requestFullscreen(); } catch(e) {}
+
+    const audio = new Audio(song);
+    audio.volume = 1.0;
+    audio.play().catch(e => console.log("Аудио:", e));
+
+    crackAndFallButton(startBtn);
+
+    setTimeout(() => {
+      startScreen.style.display = "none";
+
+      const redScreen = document.getElementById("red-text-screen");
+      const redText = document.getElementById("red-text");
+
+      redScreen.classList.add("show");
+      redText.classList.add("fall");
+
+      setTimeout(() => {
+        redText.classList.remove("fall");
+        redText.classList.add("shake");
+      }, 500);
+
+    }, 800);
+
+    setTimeout(() => {
+      const redScreen = document.getElementById("red-text-screen");
+      const redText = document.getElementById("red-text");
+
+      redScreen.style.transition = "opacity 0.5s";
+      redScreen.style.opacity = "0";
+
+         setTimeout(() => {
+        redScreen.classList.remove("show");
+        redScreen.style.opacity = "1";
+        redText.classList.remove("shake");
+
+        document.querySelectorAll(".corner").forEach(c => c.classList.add("on"));
+
+        photoDiv.style.transition = "opacity 2s ease-in";
+        photoDiv.style.opacity = "0";
+        setTimeout(() => { photoDiv.style.opacity = "1"; }, 100);
+
+        photoDiv.style.backgroundImage = `url("${photos[0]}")`;
+        currentPhoto = 1;
+        setTimeout(showNextPhoto, 2500);
+
+      }, 500);
+
+    }, 6800);
+  });
+</script>
+</body>
+</html>
